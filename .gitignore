@@ -1,0 +1,18 @@
+# Virtual Environment
+myEnv/
+venv/
+env/
+
+# IDE
+.qodo/
+.vscode/
+.idea/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+
+# Logs
+*.log
