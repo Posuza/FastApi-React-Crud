@@ -1,12 +1,16 @@
-# Virtual environments
+# Python
+__pycache__/
+*.py[cod]
 myEnv/
-venv/
-env/
+
+# Environment variables
+.env
+
+# Node
+node_modules/
+dist/
+.DS_Store
 
 # IDE
 .vscode/
 .idea/
-.qodo/
-
-# System files
-.DS_Store

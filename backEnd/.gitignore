@@ -1,14 +1,10 @@
-# Environment variables
-.env
-
-# Python
+# Python specific
 __pycache__/
 *.py[cod]
-*$py.class
+*.so
 
-# Database
-*.db
-*.sqlite3
-
-# Logs
-*.log
+# Environment
+.env
+.venv
+env/
+venv/
