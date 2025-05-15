@@ -1,18 +1,12 @@
-# Virtual Environment
+# Virtual environments
 myEnv/
 venv/
 env/
 
 # IDE
-.qodo/
 .vscode/
 .idea/
+.qodo/
 
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-.env
-
-# Logs
-*.log
+# System files
+.DS_Store
