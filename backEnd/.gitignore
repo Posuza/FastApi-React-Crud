@@ -8,3 +8,11 @@ __pycache__/
 .venv
 env/
 venv/
+myEnv/
+
+# IDE
+.vscode/
+.idea/
+
+# System
+.DS_Store
