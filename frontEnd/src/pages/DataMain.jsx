@@ -7,7 +7,7 @@ const DataMain = () => {
   return (
     <section>
       <Container>
-        <Breadcrumb currentPage={"Data Main"}/>
+        <Breadcrumb currentPage={"Employee Data"}/>
         <DataTable />
       </Container>
     </section>

@@ -5,7 +5,7 @@ const ModuleBtn = ({ name, icon, url }) => {
   return (
     <Link
       to={url}
-      className="flex flex-col items-center gap-3 h-full bg-blue-600 p-5 text-white  rounded-lg"
+      className="flex flex-col items-center gap-3 h-full bg-sky-700 p-8 text-white  rounded-lg"
     >
       {icon}
       <h3>{name}</h3>

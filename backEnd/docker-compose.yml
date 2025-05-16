@@ -1,10 +1,6 @@
 version: '3.8'
 
-volumes:
-  data:
-
-
-
+services:
   backend:
     build: 
       context: .
@@ -19,3 +15,10 @@ volumes:
       - backend-network
     volumes:
       - data:/app/data
+
+volumes:
+  data:
+
+networks:
+  backend-network:
+    driver: bridge

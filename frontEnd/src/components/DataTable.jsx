@@ -1,60 +1,34 @@
 import React, { useState, useMemo, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useDataTableStore } from '../store/useDataTableStore';
 import { MdDelete, MdEdit } from "react-icons/md";
 import { FaArrowLeftLong, FaArrowRightLong } from "react-icons/fa6";
+import { IoPersonAddSharp } from "react-icons/io5";
 
-const mockRows = [
-    {
-        id: 1,
-        employeeName: "John Doe",
-        age: 28,
-        department: "Engineering",
-        township: "Downtown",
-        location: "bangladesh",
-    },
-    {
-        id: 2,
-        employeeName: "Jane Smith",
-        age: 34,
-        department: "Marketing",
-        township: "Uptown",
-    },
-    {
-        id: 3,
-        employeeName: "Alice Johnson",
-        age: 45,
-        department: "Human Resources",
-        township: "Westside",
-        extraField: "Extra Value"
-    },
-    {
-        id: 4,
-        employeeName: "Bob Lee",
-        age: 39,
-        department: "Finance",
-        township: "Lakeside",
-    },
-];
 
 const DataTable = () => {
-    const rows = useDataTableStore((state) => state.rows);
-    const setRows = useDataTableStore((state) => state.setRows);
-    const updateRow = useDataTableStore((state) => state.updateRow);
-    const deleteRow = useDataTableStore((state) => state.deleteRow);
-    const fetchFakeApi = useDataTableStore((state) => state.fetchFakeApi);
+    const { 
+        rows, 
+        fetchItems, 
+        createItem, 
+        updateItem, 
+        deleteItem,
+        loading,
+        error 
+    } = useDataTableStore();
 
     const [editRow, setEditRow] = useState(null);
     const [showDelete, setShowDelete] = useState(false);
     const [rowToDelete, setRowToDelete] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [search, setSearch] = useState("");
-    const rowsPerPage = 2;
+    const [showValidationError, setShowValidationError] = useState(false);
+    const rowsPerPage = 8;
+    const navigate = useNavigate();
 
     useEffect(() => {
-        if (!rows || rows.length === 0) {
-            fetchFakeApi();
-        }
-    }, [rows, fetchFakeApi]);
+        fetchItems();
+    }, [fetchItems]);
 
     // Get all unique keys from all rows (excluding 'id')
     const columns = useMemo(() => {
@@ -101,38 +75,60 @@ const DataTable = () => {
         }));
     };
 
-    // Add this function to create an empty row based on current columns
+    // Modify handleCreate to use the store's createItem
     const handleCreate = () => {
-        const newRow = { id: Date.now() };
-        columns.forEach(col => {
-            newRow[col] = "";
-        });
+        const newRow = { 
+            name: "",
+            description: ""
+        };
         setEditRow(newRow);
     };
 
-    // Modify handleEditSave to add or update
-    const handleEditSave = () => {
-        if (!editRow.id || !rows.find(r => r.id === editRow.id)) {
-            // New row
-            setRows([...rows, { ...editRow, id: Date.now() }]);
-        } else {
-            // Existing row
-            updateRow(editRow);
+    // Add validation check function
+    const validateForm = () => {
+        return editRow?.name?.trim() && editRow?.description?.trim();
+    };
+
+    // Update handleEditSave
+    const handleEditSave = async () => {
+        if (!validateForm()) {
+            setShowValidationError(true);
+            return;
         }
-        setEditRow(null);
+
+        try {
+            if (!editRow.id) {
+                // Create new item
+                await createItem(editRow);
+            } else {
+                // Update existing item
+                await updateItem(editRow.id, editRow);
+            }
+            setEditRow(null);
+        } catch (error) {
+            alert("Failed to save item.");
+        }
     };
 
     const handleEditCancel = () => setEditRow(null);
 
-    const handleDelete = (row) => {
+    const handleDelete = (e, row) => {
+        e.stopPropagation(); // Prevent row click event
         setRowToDelete(row);
         setShowDelete(true);
     };
 
-    const confirmDelete = () => {
-        deleteRow(rowToDelete.id);
-        setShowDelete(false);
-        setRowToDelete(null);
+    // Update confirmDelete to use the store's deleteItem
+    const confirmDelete = async () => {
+        try {
+            await deleteItem(rowToDelete.id);
+            setShowDelete(false);
+            setRowToDelete(null);
+            // Remove fetchItems call since the store already updates the state
+        } catch (error) {
+            console.error('Delete error:', error);
+            alert(error.message || "Failed to delete item.");
+        }
     };
 
     const cancelDelete = () => {
@@ -140,54 +136,71 @@ const DataTable = () => {
         setRowToDelete(null);
     };
 
+    if (error) {
+        return <div className="text-red-600 p-4">Error: {error}</div>;
+    }
+
+    // Update the return statement to handle loading
     return (
         <>
+            {loading && (
+                <div className="absolute inset-0 bg-white/50 flex items-center justify-center z-50">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-700"></div>
+                </div>
+            )}
+
             {/* Search Bar and Create Product Button */}
             <div className="flex justify-between mb-4 items-center">
                 <input
                     type="text"
-                    className="border px-3 py-2 rounded w-64"
+                    className="border-2 border-stone-300 px-3 py-2 rounded-md w-64  outline-transparent focus:outline-sky-700"
                     placeholder="Search..."
                     value={search}
                     onChange={e => setSearch(e.target.value)}
                 />
                 <button
-                    className="px-4 py-2 bg-green-600 text-white rounded"
+                    className="flex gap-2 items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 active:scale-95  transition duration-300"
                     onClick={handleCreate}
                 >
-                    Create Product
+                   <IoPersonAddSharp size={20}/> Create New Employee 
                 </button>
             </div>
         <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
 
             {/* Edit Modal */}
             {editRow && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm transition-all">
-                    <div className="bg-white p-6 rounded shadow-lg w-full max-w-md">
-                        <h2 className="text-lg font-bold mb-4">Edit Employee</h2>
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30  transition-all">
+                    <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+                        <h2 className="text-lg font-bold text-sky-700 mb-4">
+                            {editRow.id ? 'Edit' : 'Create New'} Employee
+                        </h2>
                         {columns.map((col) => (
-                            <div className="mb-2" key={col}>
-                                <label className="block mb-1 capitalize">
+                            <div className="mb-4" key={col}>
+                                <label className="block  text-sky-800 mb-1 capitalize">
                                     {col.replace(/([A-Z])/g, " $1")}
+                                    {/* <span className="text-red-500 ml-1">*</span> */}
                                 </label>
                                 <input
-                                    className="border px-2 py-1 w-full"
+                                    className={`border rounded-lg px-2 py-2 w-full ${
+                                        !editRow[col]?.trim() ? 'border-gray-300 outline-transparent focus:outline-sky-700' : 'border-gray-300'
+                                    }`}
                                     name={col}
                                     type={typeof editRow[col] === "number" ? "number" : "text"}
                                     value={editRow[col] ?? ""}
                                     onChange={handleEditChange}
+                                    required
                                 />
                             </div>
                         ))}
                         <div className="flex justify-end gap-2">
                             <button
-                                className="px-4 py-2 bg-gray-200 rounded"
+                                className="px-4 py-2 bg-gray-200 hover:bg-gray-300 active:scale-95 rounded"
                                 onClick={handleEditCancel}
                             >
                                 Cancel
                             </button>
                             <button
-                                className="px-4 py-2 bg-blue-600 text-white rounded"
+                                className="px-4 py-2 bg-sky-800 hover:bg-sky-900 active:scale-95 text-white rounded"
                                 onClick={handleEditSave}
                             >
                                 Save
@@ -199,27 +212,57 @@ const DataTable = () => {
 
             {/* Custom Delete Confirmation */}
             {showDelete && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm transition-all">
-                    <div className="bg-white p-6 rounded shadow-lg w-full max-w-sm">
-                        <h2 className="text-lg font-bold mb-4 text-red-600">
-                            Delete Confirmation
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30  transition-all">
+                    <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-sm">
+                        <h2 className="flex items-center gap-2 text-lg font-bold mb-4 text-red-600">
+                            <MdDelete size={24}/> Delete Confirmation
                         </h2>
                         <p className="mb-4">
                             Are you sure you want to delete{" "}
-                            <b>{rowToDelete.employeeName}</b>?
+                            <b>{rowToDelete?.name || 'this item'}</b>?
                         </p>
                         <div className="flex justify-end items-center h-full gap-2">
                             <button
-                                className="px-4 py-2 bg-gray-200 rounded"
+                                className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 active:scale-95"
                                 onClick={cancelDelete}
                             >
                                 Cancel
                             </button>
                             <button
-                                className="px-4 py-2 bg-red-600 text-white rounded"
+                                className="px-4 py-2 bg-red-600 hover:bg-red-700 active:scale-95 text-white rounded"
                                 onClick={confirmDelete}
                             >
                                 Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Validation Error Modal */}
+            {showValidationError && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30  transition-all">
+                    <div className="bg-white p-6 rounded shadow-lg w-full max-w-sm">
+                        <h2 className="flex items-center gap-2 text-lg font-bold mb-4 text-sky-700">
+                            <MdEdit size={24}/> Validation Error
+                        </h2>
+                        <p className="mb-4">
+                            Please fill in all required fields:
+                            <ul className="list-disc ml-6 mt-2 text-gray-600">
+                                {!editRow?.name?.trim() && (
+                                    <li>Employee name is required</li>
+                                )}
+                                {!editRow?.description?.trim() && (
+                                    <li>Description is required</li>
+                                )}
+                            </ul>
+                        </p>
+                        <div className="flex justify-end items-center h-full">
+                            <button
+                                className="px-4 py-2 bg-sky-700 hover:bg-sky-800 active:scale-95 text-white rounded"
+                                onClick={() => setShowValidationError(false)}
+                            >
+                                OK
                             </button>
                         </div>
                     </div>
@@ -249,31 +292,39 @@ const DataTable = () => {
                     {paginatedRows.map((row) => (
                         <tr
                             key={row.id}
-                            className="bg-white border-b border-gray-200 hover:bg-gray-50"
+                            className="bg-white border-b border-gray-200 hover:bg-gray-50 w-full cursor-pointer"
+                            onClick={() => navigate(`/product/${row.id}`)}
                         >
                             {columns.map((col) => (
                                 <td
                                     key={col}
                                     className={`px-6 py-4 ${typeof row[col] === "number" ? "text-right" : ""}`}
+                                    onClick={e => e.stopPropagation()} // Prevent row click when clicking inside cell
                                 >
-                                    {typeof row[col] === "object" && row[col] !== null
-                                        ? ""
-                                        : row[col] ?? ""}
+                                    {col === "image" && typeof row[col] === "string" ? (
+                                        <img src={row[col]} alt="product" className="h-12 w-12 object-contain mx-auto" />
+                                    ) : typeof row[col] === "object" && row[col] !== null ? (
+                                        ""
+                                    ) : (
+                                        row[col] ?? ""
+                                    )}
                                 </td>
                             ))}
-                            <td className="px-6 py-4 text-right flex gap-2 justify-end">
-                                <button
-                                    className="font-medium text-blue-600 hover:underline"
-                                    onClick={() => handleEdit(row)}
-                                >
-                                    <MdEdit className="text-xl" />
-                                </button>
-                                <button
-                                    className="font-medium text-red-600 hover:underline"
-                                    onClick={() => handleDelete(row)}
-                                >
-                                    <MdDelete className="text-xl" />
-                                </button>
+                            <td className="px-6 py-4 text-right">
+                                <div className="flex inline-block justify-  h-full">
+                                    <button
+                                        className="font-medium text-blue-600 hover:underline hover:bg-gray-100 p-3 active:scale-95 border-gray-200 border rounded-l-lg"
+                                        onClick={e => { e.stopPropagation(); handleEdit(row); }}
+                                    >
+                                        <MdEdit className="text-xl" />
+                                    </button>
+                                    <button
+                                        className="font-medium text-red-600 hover:underline hover:bg-gray-200 p-3 active:scale-95 border-gray-200 border rounded-r-lg"
+                                        onClick={(e) => handleDelete(e, row)}
+                                    >
+                                        <MdDelete className="text-xl" />
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                     ))}
@@ -281,23 +332,23 @@ const DataTable = () => {
             </table>
         </div>
             {/* Pagination Controls */}
-            <div className="flex justify-center items-center gap-2 mt-4  ">
+            <div className="flex justify-center items-center gap-2 my-6  ">
                 <button
-                    className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
+                    className="px-3 py-1 bg-white shadow hover:bg-gray-100 active:bg-gray-200 duration-500 rounded disabled:opacity-50"
                     onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
                     disabled={currentPage === 1}
                 >
-                    <FaArrowLeftLong className="text-xl" />
+                    <FaArrowLeftLong className="text-xl text-sky-800" />
                 </button>
                 <span>
                     Page {currentPage} of {totalPages}
                 </span>
                 <button
-                    className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
+                    className="px-3 py-1 bg-white shadow hover:bg-gray-100 active:bg-gray-200 duration-500 rounded disabled:opacity-50"
                     onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
                     disabled={currentPage === totalPages}
                 >
-                    <FaArrowRightLong className="text-xl" />
+                    <FaArrowRightLong className="text-xl text-sky-800" />
                 </button>
             </div>
         </>

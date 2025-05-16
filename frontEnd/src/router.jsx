@@ -3,6 +3,7 @@ import Layout from "./components/Layout";
 import ErrorNotFound from "./pages/ErrorNotFound";
 import Dashboard from "./pages/Dashboard";
 import DataMain from "./pages/DataMain";
+import ProductDetail from "./pages/ProductDetail";
 
 const router = createBrowserRouter([
     {
@@ -15,12 +16,16 @@ const router = createBrowserRouter([
                 element: <Dashboard />
             },
             {
-                path: "data-main",
+                path: "employee-data",
                 element: <DataMain  />
+            },
+            {
+                path: "product/:id",
+                element: <ProductDetail />
             }
         ]
      
     },
 ]);
 
-export default router; 
+export default router;

@@ -2,13 +2,20 @@
 __pycache__/
 *.py[cod]
 myEnv/
+venv/
 
-# Environment variables
-.env
-
-# Node
+# Dependencies
 node_modules/
+
+# Environment
+.env
+.env.local
+
+# Build
 dist/
+build/
+
+# System
 .DS_Store
 
 # IDE
