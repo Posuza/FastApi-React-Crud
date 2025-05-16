@@ -12,7 +12,7 @@ app = FastAPI()
 # Add CORS middleware configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # Vite frontend default port
+    allow_origins=["http://localhost:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"]
@@ -48,24 +48,43 @@ def create_item(item: ItemCreate, db: Session = Depends(get_db)):
     db.refresh(new_item)
     return new_item.to_dict()
 
-@app.put("/items/{item_id}", response_model=dict)
-def update_item(item_id: int, name: str, description: Union[str, None] = None, db: Session = Depends(get_db)):
-    item = db.query(Item).filter(Item.id == item_id).first()
-    if item is None:
+@app.put("/items/{item_id}", response_model=ItemResponse)
+async def update_item(item_id: int, item: ItemCreate, db: Session = Depends(get_db)):
+    db_item = db.query(Item).filter(Item.id == item_id).first()
+    if db_item is None:
         raise HTTPException(status_code=404, detail="Item not found")
     
-    item.name = name
-    item.description = description
-    db.commit()
-    db.refresh(item)
-    return item
+    # Update the item attributes
+    db_item.name = item.name
+    db_item.description = item.description
+    
+    try:
+        db.commit()
+        db.refresh(db_item)
+        return db_item.to_dict()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.delete("/items/{item_id}", response_model=dict)
 def delete_item(item_id: int, db: Session = Depends(get_db)):
-    item = db.query(Item).filter(Item.id == item_id).first()
-    if item is None:
-        raise HTTPException(status_code=404, detail="Item not found")
+    try:
+        item = db.query(Item).filter(Item.id == item_id).first()
+        if item is None:
+            raise HTTPException(status_code=404, detail="Item not found")
+        
+        # Store item data before deletion for response
+        item_data = item.to_dict()
+        
+        # Delete the item
+        db.delete(item)
+        db.commit()
+        
+        return {"message": "Item deleted successfully", "item": item_data}
     
-    db.delete(item)
-    db.commit()
-    return item
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to delete item: {str(e)}"
+        )
