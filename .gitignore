@@ -9,11 +9,27 @@ node_modules/
 
 # Environment
 .env
+.env.*
 .env.local
+
 
 # Build
 dist/
+dist-ssr/
 build/
+
+
+# IDE
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# System
+.DS_Store
+
 
 # System
 .DS_Store
@@ -21,3 +37,4 @@ build/
 # IDE
 .vscode/
 .idea/
+
