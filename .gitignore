@@ -2,15 +2,32 @@
 __pycache__/
 *.py[cod]
 myEnv/
+venv/
 
 # Environment variables
 .env
+.env.local
+.env.development
+.env.production
 
 # Node
 node_modules/
 dist/
+build/
 .DS_Store
 
 # IDE
 .vscode/
 .idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Git
+.git/
