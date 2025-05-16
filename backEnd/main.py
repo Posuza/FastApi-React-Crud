@@ -4,8 +4,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
 from utilities.dbConfig import get_db, engine
-from utilities.models import Base, Item
-from utilities.schemas import ItemResponse, ItemCreate
+from utilities.models import Base, Item, User
+from utilities.schemas import ItemResponse, ItemCreate, UserResponse, UserCreate
 
 app = FastAPI()
 
@@ -22,6 +22,7 @@ app.add_middleware(
 @app.on_event("startup")
 def on_startup():
     Item.create_table_if_not_exists()
+    User.create_table_if_not_exists()
     print("Database initialization completed.")
 
 @app.get("/")
@@ -88,3 +89,21 @@ def delete_item(item_id: int, db: Session = Depends(get_db)):
             status_code=500,
             detail=f"Failed to delete item: {str(e)}"
         )
+
+# Add user routes
+@app.post("/users/", response_model=UserResponse)
+def create_user(user: UserCreate, db: Session = Depends(get_db)):
+    db_user = User(
+        username=user.username,
+        email=user.email,
+        password=user.password  # In production, hash this password!
+    )
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user.to_dict()
+
+@app.get("/users/", response_model=List[UserResponse])
+def read_users(db: Session = Depends(get_db)):
+    users = db.query(User).all()
+    return [user.to_dict() for user in users]
