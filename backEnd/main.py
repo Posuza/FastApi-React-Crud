@@ -1,7 +1,9 @@
-from typing import Union, List
-from fastapi import FastAPI, Depends, HTTPException
+from typing import Union, List, Optional
+from fastapi import FastAPI, Depends, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
+from pydantic import BaseModel
 
 from utilities.dbConfig import get_db, engine
 from utilities.models import Base, Item, User
@@ -67,6 +69,11 @@ async def update_item(item_id: int, item: ItemCreate, db: Session = Depends(get_
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
+
+
+##################### item ###########################
+
+
 @app.delete("/items/{item_id}", response_model=dict)
 def delete_item(item_id: int, db: Session = Depends(get_db)):
     try:
@@ -90,6 +97,11 @@ def delete_item(item_id: int, db: Session = Depends(get_db)):
             detail=f"Failed to delete item: {str(e)}"
         )
 
+
+
+
+########################## user ###########################
+
 # Add user routes
 @app.post("/users/", response_model=UserResponse)
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
@@ -107,3 +119,86 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
 def read_users(db: Session = Depends(get_db)):
     users = db.query(User).all()
     return [user.to_dict() for user in users]
+
+@app.get("/users/{user_id}", response_model=UserResponse)
+def get_user(user_id: int, db: Session = Depends(get_db)):
+    try:
+        user = db.query(User).filter(User.id == user_id).first()
+        if user is None:
+            raise HTTPException(status_code=404, detail="User not found")
+        return user.to_dict()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+active_sessions = set()  # In production, use a database or Redis
+
+@app.post("/users/login")
+def login_user(username: str, password: str, db: Session = Depends(get_db)):
+    try:
+        user = db.query(User).filter(User.username == username).first()
+        if not user or user.password != password:
+            raise HTTPException(
+                status_code=401,
+                detail="Incorrect username or password"
+            )
+        
+        # Add user to active sessions
+        active_sessions.add(username)
+        
+        return {
+            "message": "Login successful",
+            "user": user.to_dict()
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+class LogoutRequest(BaseModel):
+    username: str
+
+@app.post("/users/logout")
+def logout_user(request: LogoutRequest):
+    try:
+        if request.username in active_sessions:
+            active_sessions.remove(request.username)
+            return {"message": "Logout successful"}
+        else:
+            raise HTTPException(
+                status_code=401,
+                detail="User not logged in"
+            )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Logout failed: {str(e)}"
+        )
+
+@app.get("/users/session-status/{username}")
+def check_session(username: str):
+    return {
+        "is_active": username in active_sessions
+    }
+
+@app.delete("/users/{user_id}", response_model=dict)
+def delete_user(user_id: int, db: Session = Depends(get_db)):
+    try:
+        user = db.query(User).filter(User.id == user_id).first()
+        if user is None:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Store user data before deletion for response
+        user_data = user.to_dict()
+        
+        # Delete the user
+        db.delete(user)
+        db.commit()
+        
+        return {
+            "message": "User deleted successfully",
+            "user": user_data
+        }
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to delete user: {str(e)}"
+        )

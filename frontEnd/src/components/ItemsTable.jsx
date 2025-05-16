@@ -1,21 +1,22 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useDataTableStore } from '../store/useDataTableStore';
+import { useStore } from '../store/store';
 import { MdDelete, MdEdit } from "react-icons/md";
 import { FaArrowLeftLong, FaArrowRightLong } from "react-icons/fa6";
 import { IoPersonAddSharp } from "react-icons/io5";
 
 
 const DataTable = () => {
-    const { 
-        rows, 
-        fetchItems, 
-        createItem, 
-        updateItem, 
-        deleteItem,
-        loading,
-        error 
-    } = useDataTableStore();
+    const navigate = useNavigate();
+    // Separate store selectors to prevent unnecessary re-renders
+    const user = useStore(state => state.user);
+    const items = useStore(state => state.items);
+    const itemsLoading = useStore(state => state.itemsLoading);
+    const itemsError = useStore(state => state.itemsError);
+    const fetchItems = useStore(state => state.fetchItems);
+    const createItem = useStore(state => state.createItem);
+    const updateItem = useStore(state => state.updateItem);
+    const deleteItem = useStore(state => state.deleteItem);
 
     const [editRow, setEditRow] = useState(null);
     const [showDelete, setShowDelete] = useState(false);
@@ -24,33 +25,46 @@ const DataTable = () => {
     const [search, setSearch] = useState("");
     const [showValidationError, setShowValidationError] = useState(false);
     const rowsPerPage = 8;
-    const navigate = useNavigate();
 
+    // Fetch items only when component mounts or user changes
     useEffect(() => {
-        fetchItems();
-    }, [fetchItems]);
+        if (!user) {
+            navigate('/auth');
+            return;
+        }
+        
+        const loadItems = async () => {
+            try {
+                await fetchItems();
+            } catch (error) {
+                console.error('Failed to fetch items:', error);
+            }
+        };
+        
+        loadItems();
+    }, [user, navigate]); // Remove fetchItems from dependencies
 
     // Get all unique keys from all rows (excluding 'id')
     const columns = useMemo(() => {
         const colSet = new Set();
-        rows.forEach(row => {
+        items.forEach(row => {
             Object.keys(row).forEach(key => {
                 if (key !== "id") colSet.add(key);
             });
         });
         return Array.from(colSet);
-    }, [rows]);
+    }, [items]);
 
     // Filter rows based on search
     const filteredRows = useMemo(() => {
-        if (!search) return rows;
-        return rows.filter(row =>
+        if (!search) return items;
+        return items.filter(row =>
             Object.values(row)
                 .join(" ")
                 .toLowerCase()
                 .includes(search.toLowerCase())
         );
-    }, [rows, search]);
+    }, [items, search]);
 
     // Calculate paginated rows from filteredRows
     const paginatedRows = useMemo(() => {
@@ -63,7 +77,7 @@ const DataTable = () => {
     // Reset to first page if rows change and current page is out of range
     useEffect(() => {
         if (currentPage > totalPages) setCurrentPage(1);
-    }, [rows, totalPages]);
+    }, [items, totalPages]);
 
     const handleEdit = (row) => setEditRow({ ...row });
 
@@ -136,14 +150,14 @@ const DataTable = () => {
         setRowToDelete(null);
     };
 
-    if (error) {
-        return <div className="text-red-600 p-4">Error: {error}</div>;
+    if (itemsError) {
+        return <div className="text-red-600 p-4">Error: {itemsError}</div>;
     }
 
     // Update the return statement to handle loading
     return (
         <>
-            {loading && (
+            {itemsLoading && (
                 <div className="absolute inset-0 bg-white/50 flex items-center justify-center z-50">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-700"></div>
                 </div>
@@ -276,7 +290,7 @@ const DataTable = () => {
                             <th
                                 key={col}
                                 scope="col"
-                                className={`px-6 py-3 ${typeof rows[0]?.[col] === "number" ? "text-right" : ""}`}
+                                className={`px-6 py-3 ${typeof items[0]?.[col] === "number" ? "text-right" : ""}`}
                             >
                                 {col
                                     .replace(/([A-Z])/g, " $1")
