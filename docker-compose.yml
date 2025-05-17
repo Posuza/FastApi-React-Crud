@@ -2,22 +2,31 @@ version: '3.8'
 
 services:
   backend:
-    build: ./backEnd
+    build: 
+      context: ./backEnd
+      dockerfile: Dockerfile.app
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=your_database_url
+      - DATABASE_URL=mysql+mysqlconnector://root:@host.docker.internal:3306/product
     networks:
       - app-network
+    volumes:
+      - backend_data:/app/data
 
   frontend:
-    build: ./frontEnd
+    build:
+      context: ./frontEnd
+      dockerfile: Dockerfile
     ports:
       - "5173:5173"
     depends_on:
       - backend
     networks:
       - app-network
+
+volumes:
+  backend_data:
 
 networks:
   app-network:
