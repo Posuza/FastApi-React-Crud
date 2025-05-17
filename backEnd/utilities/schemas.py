@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from typing import Optional
 
 class ItemBase(BaseModel):
@@ -10,6 +10,20 @@ class ItemCreate(ItemBase):
 
 class ItemResponse(ItemBase):
     id: int
+
+    class Config:
+        from_attributes = True
+
+class UserBase(BaseModel):
+    username: str
+    email: EmailStr
+
+class UserCreate(UserBase):
+    password: str
+
+class UserResponse(UserBase):
+    id: int
+    is_active: bool
 
     class Config:
         from_attributes = True
