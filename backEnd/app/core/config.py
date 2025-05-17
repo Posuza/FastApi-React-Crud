@@ -1,0 +1,95 @@
+import os
+from typing import Any, Dict, Optional, List
+from dotenv import load_dotenv
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from sqlalchemy import create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+from functools import lru_cache
+
+# Load environment variables
+load_dotenv()
+
+class Settings(BaseSettings):
+    PROJECT_NAME: str = "GutsAPI"
+    API_V1_STR: str = "/api/v1"
+    VERSION: str = "1.0.0"
+    ENVIRONMENT: str = "development"  # Add this line
+    
+    # Database settings
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "mysql+mysqlconnector://root:@localhost:3306/product")
+    
+    # OAuth2 settings
+    GOOGLE_CLIENT_ID: Optional[str] = os.getenv("GOOGLE_CLIENT_ID")
+    GOOGLE_CLIENT_SECRET: Optional[str] = os.getenv("GOOGLE_CLIENT_SECRET")
+    GITHUB_CLIENT_ID: Optional[str] = os.getenv("GITHUB_CLIENT_ID")
+    GITHUB_CLIENT_SECRET: Optional[str] = os.getenv("GITHUB_CLIENT_SECRET")
+    
+    # Security settings
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "")
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
+    
+    # CORS settings
+    BACKEND_CORS_ORIGINS: List[str] = [
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "http://localhost:8080",
+    ]
+    
+    # Additional security settings
+    ALGORITHM: str = "HS256"
+    MIN_PASSWORD_LENGTH: int = 8
+    
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        case_sensitive=True,
+        extra="allow"  # Add this line to allow extra fields
+    )
+
+@lru_cache()
+def get_settings() -> Settings:
+    """Cache and return settings instance"""
+    return Settings()
+
+settings = get_settings()
+
+# Database configuration
+DATABASE_CONFIG: Dict[str, Any] = {
+    "echo": False,
+    "pool_pre_ping": True,
+    "pool_recycle": 3600,
+    "pool_size": 5,
+    "max_overflow": 10,
+}
+
+# Database configuration and initialization
+def init_db():
+    if not settings.DATABASE_URL:
+        raise ValueError("No DATABASE_URL set in environment")
+    try:
+        # Test database connection
+        engine.connect()
+        print("Database connection successful")
+    except Exception as e:
+        print(f"Database connection failed: {str(e)}")
+        raise
+
+# Create engine with specific MySQL settings
+engine = create_engine(
+    settings.DATABASE_URL,
+    **DATABASE_CONFIG
+)
+
+# Create SessionLocal class
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# Create Base class for models
+Base = declarative_base()
+
+# Dependency for database session
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
