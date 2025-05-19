@@ -225,7 +225,7 @@ async def refresh_token(
             detail=f"Error refreshing token: {str(e)}"
         )
 
-@router.put("/me", response_model=UserResponse)
+@router.put("/update", response_model=UserResponse)
 async def update_current_user(
     user_update: UserUpdate,
     token_data: Tuple[Token, User] = Depends(verify_token_db),
