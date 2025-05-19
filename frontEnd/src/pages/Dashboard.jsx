@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store/store';
 import ModuleBtn from '../components/ModuleBtn';
 import { ImUserTie } from "react-icons/im";
-import { FiLogOut } from "react-icons/fi";
+import { AiFillProduct, AiFillMedicineBox, AiFillLayout } from "react-icons/ai";
 import Container from '../components/Container';
 
 const Dashboard = () => {
@@ -40,6 +40,13 @@ const Dashboard = () => {
               url="/items"
             />
           </div>
+          <div className="col-span-1 row-span-1 text-center text-sm mx-auto w-72">
+            <ModuleBtn 
+              name="Employee Data" 
+              icon={<AiFillLayout className='size-16'/>} 
+              url="/employee-data" 
+            />
+          </div>
         </div>
       </Container>
     </section>
@@ -47,3 +54,4 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+
