@@ -11,10 +11,10 @@ from functools import lru_cache
 load_dotenv()
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "GutsAPI"
-    API_V1_STR: str = "/api/v1"
-    VERSION: str = "1.0.0"
-    ENVIRONMENT: str = "development"  # Add this line
+    # Project settings
+    PROJECT_NAME: str = os.getenv("PROJECT_NAME", "GutsAPI")
+    VERSION: str = os.getenv("VERSION", "1.0.0")
+    ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
     
     # Database settings
     DATABASE_URL: str = os.getenv("DATABASE_URL", "mysql+mysqlconnector://root:@localhost:3306/product")
@@ -26,25 +26,27 @@ class Settings(BaseSettings):
     GITHUB_CLIENT_SECRET: Optional[str] = os.getenv("GITHUB_CLIENT_SECRET")
     
     # Security settings
-    SECRET_KEY: str = os.getenv("SECRET_KEY", "")
+    SECRET_KEY: str = os.getenv("SECRET_KEY")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
     
     # CORS settings
-    BACKEND_CORS_ORIGINS: List[str] = [
-        "http://localhost:5173",
-        "http://localhost:3000",
-        "http://localhost:8080",
-    ]
+    BACKEND_CORS_ORIGINS: List[str] = os.getenv("BACKEND_CORS_ORIGINS", "http://localhost:5173,http://localhost:3000,http://localhost:8080").split(",")
     
-    # Additional security settings
-    ALGORITHM: str = "HS256"
-    MIN_PASSWORD_LENGTH: int = 8
-    
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        case_sensitive=True,
-        extra="allow"  # Add this line to allow extra fields
-    )
+    # JWT Settings
+    ALGORITHM: str = os.getenv("ALGORITHM", "HS256")
+
+    # API Settings
+    API_V1_STR: str = os.getenv("API_V1_STR", "/api/v1")
+
+    # Database pool settings
+    DB_POOL_SIZE: int = int(os.getenv("DB_POOL_SIZE", "5"))
+    DB_MAX_OVERFLOW: int = int(os.getenv("DB_MAX_OVERFLOW", "10"))
+    DB_POOL_RECYCLE: int = int(os.getenv("DB_POOL_RECYCLE", "3600"))
+    DB_ECHO: bool = os.getenv("DB_ECHO", "False").lower() == "true"
+
+    class Config:
+        env_file = ".env"
+        case_sensitive = True
 
 @lru_cache()
 def get_settings() -> Settings:
@@ -55,11 +57,11 @@ settings = get_settings()
 
 # Database configuration
 DATABASE_CONFIG: Dict[str, Any] = {
-    "echo": False,
+    "echo": settings.DB_ECHO,
     "pool_pre_ping": True,
-    "pool_recycle": 3600,
-    "pool_size": 5,
-    "max_overflow": 10,
+    "pool_recycle": settings.DB_POOL_RECYCLE,
+    "pool_size": settings.DB_POOL_SIZE,
+    "max_overflow": settings.DB_MAX_OVERFLOW,
 }
 
 # Database configuration and initialization
