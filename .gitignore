@@ -4,15 +4,20 @@ __pycache__/
 myEnv/
 venv/
 
-# Environment variables
+# Dependencies
+node_modules/
+
+# Environment
 .env
 .env.*
+.env.local
 
-# Node
-node_modules/
+
+# Build
 dist/
 dist-ssr/
 build/
+
 
 # IDE
 .vscode/
@@ -24,3 +29,12 @@ build/
 
 # System
 .DS_Store
+
+
+# System
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
