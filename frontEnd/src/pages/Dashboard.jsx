@@ -40,13 +40,13 @@ const Dashboard = () => {
               url="/items"
             />
           </div>
-          <div className="col-span-1 row-span-1 text-center text-sm mx-auto w-72">
+          {/* <div className="col-span-1 row-span-1 text-center text-sm mx-auto w-72">
             <ModuleBtn 
               name="Employee Data" 
               icon={<AiFillLayout className='size-16'/>} 
               url="/employee-data" 
             />
-          </div>
+          </div> */}
         </div>
       </Container>
     </section>

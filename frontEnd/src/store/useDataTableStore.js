@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { apiService } from '../services/api.services';
+import { apiService } from '../services/item.services';
 
 export const useDataTableStore = create((set) => ({
     rows: [],

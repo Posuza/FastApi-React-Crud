@@ -27,6 +27,7 @@ const DataTable = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
+
         fetchItems();
     }, [fetchItems]);
 
