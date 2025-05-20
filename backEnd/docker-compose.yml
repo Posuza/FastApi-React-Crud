@@ -2,13 +2,22 @@ version: '3.8'
 
 services:
   backend:
-    build: .
-    ports:
-      - "8000:8000"
+    build: 
+      context: .
+      dockerfile: Dockerfile.app
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.fastapi.rule=Host(`fastapi.localhost`)"
+      - "traefik.http.services.fastapi.loadbalancer.server.port=8000"
     environment:
-      - DATABASE_URL=your_database_url
+      - DATABASE_URL=mysql+mysqlconnector://root:@host.docker.internal:3306/product
     networks:
       - backend-network
+    volumes:
+      - data:/app/data
+
+volumes:
+  data:
 
 networks:
   backend-network:

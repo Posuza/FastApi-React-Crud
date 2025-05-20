@@ -27,13 +27,13 @@ const ErrorNotFound = () => (
             <Link 
               to="/" 
               className="inline-flex items-center px-6 py-3 bg-sky-700 hover:bg-sky-800 
-                         text-white font-medium rounded-lg transition-colors duration-200"
+                       text-white font-medium rounded-lg transition-colors duration-200"
             >
               Return Home
             </Link>
           </div>
 
-          {/* Right Column - Illustration or Additional Info */}
+          {/* Right Column - Help Section */}
           <div className="hidden md:block">
             <div className="p-6 bg-gray-50 rounded-lg">
               <h3 className="text-xl font-semibold text-gray-800 mb-4">

@@ -1,4 +1,4 @@
-import { apiService } from '../../services/api.services';
+import { apiService } from '../../services/item.services';
 
 export const createItemsSlice = (set, get) => ({
   items: [],

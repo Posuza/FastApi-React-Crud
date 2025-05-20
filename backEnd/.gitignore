@@ -5,14 +5,7 @@ __pycache__/
 
 # Environment
 .env
+.env.docker
 .venv
 env/
 venv/
-myEnv/
-
-# IDE
-.vscode/
-.idea/
-
-# System
-.DS_Store
