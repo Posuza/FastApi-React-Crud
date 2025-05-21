@@ -23,7 +23,8 @@
     "react-router-dom": "^7.6.0",
     "swr": "^2.3.3",
     "tailwindcss": "^4.1.6",
-    "zustand": "^5.0.4"
+    "zustand": "^5.0.4",
+    "zustand-devtools": "^1.1.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",

@@ -1932,6 +1932,11 @@ type-is@^2.0.0, type-is@^2.0.1:
     media-typer "^1.1.0"
     mime-types "^3.0.0"
 
+typescript@*:
+  version "5.8.3"
+  resolved "https://registry.npmjs.org/typescript/-/typescript-5.8.3.tgz"
+  integrity sha512-p1diW6TqL9L07nNxvRMM7hMMw4c5XOo/1ibL4aAIGmSAt9slTE1Xgw5KWuof2uTOvCg9BY7ZRi+GaF+7sfgPeQ==
+
 unpipe@1.0.0:
   version "1.0.0"
   resolved "https://registry.npmjs.org/unpipe/-/unpipe-1.0.0.tgz"
@@ -2018,7 +2023,12 @@ zod@^3.23.8, zod@^3.24.1, zod@^3.24.2:
   resolved "https://registry.npmjs.org/zod/-/zod-3.24.4.tgz"
   integrity sha512-OdqJE9UDRPwWsrHjLN2F8bPxvwJBK22EHLWtanu0LSYr5YqzsaaW3RMgmjwr8Rypg5k+meEJdSPXJZXE/yqOMg==
 
-zustand@^5.0.4:
+zustand-devtools@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.npmjs.org/zustand-devtools/-/zustand-devtools-1.1.0.tgz"
+  integrity sha512-TfH8jv3M0fa0tFxgq1j+X6qCRE3/Z3W2Woutf82IPwmrMi+3Gytb43hka1tQg8Xm2So0uitJe1lIkikoaqv6JQ==
+
+zustand@*, zustand@^5.0.4:
   version "5.0.4"
   resolved "https://registry.npmjs.org/zustand/-/zustand-5.0.4.tgz"
   integrity sha512-39VFTN5InDtMd28ZhjLyuTnlytDr9HfwO512Ai4I8ZABCoyAj4F1+sr7sD1jP/+p7k77Iko0Pb5NhgBFDCX0kQ==

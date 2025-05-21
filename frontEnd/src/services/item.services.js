@@ -1,9 +1,15 @@
-import { API_URL } from '../config/api.config';
+import { API_URL, API_CONFIG } from '../config/api.config';
 
 export const apiService = {
-    async fetchItems() {
+    async fetchItems(authHeader = {}) {
         try {
-            const res = await fetch(`${API_URL}/items/`);
+            const res = await fetch(`${API_URL}/items/`, {
+                headers: {
+                    ...API_CONFIG.headers,
+                    ...authHeader
+                }
+            });
+            
             if (!res.ok) {
                 const error = await res.json();
                 throw new Error(error.detail || 'Failed to fetch items');
@@ -15,13 +21,17 @@ export const apiService = {
         }
     },
 
-    async createItem(newItem) {
+    async createItem(newItem, authHeader = {}) {
         try {
             const res = await fetch(`${API_URL}/items/`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    ...API_CONFIG.headers,
+                    ...authHeader
+                },
                 body: JSON.stringify(newItem),
             });
+            
             if (!res.ok) {
                 const error = await res.json();
                 throw new Error(error.detail || 'Failed to create item');
@@ -33,15 +43,35 @@ export const apiService = {
         }
     },
 
-    async updateItem(id, updatedData) {
+    async getItemById(id, authHeader = {}) {
+        try {
+            const res = await fetch(`${API_URL}/items/${id}`, {
+                headers: {
+                    ...API_CONFIG.headers,
+                    ...authHeader
+                }
+            });
+            
+            if (!res.ok) {
+                const error = await res.json();
+                throw new Error(error.detail || 'Failed to fetch item');
+            }
+            return res.json();
+        } catch (error) {
+            console.error('Fetch item error:', error);
+            throw error;
+        }
+    },
+
+    async updateItem(id, updatedData, authHeader = {}) {
         try {
             const res = await fetch(`${API_URL}/items/${id}`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    name: updatedData.name,
-                    description: updatedData.description
-                }),
+                headers: {
+                    ...API_CONFIG.headers,
+                    ...authHeader
+                },
+                body: JSON.stringify(updatedData),
             });
 
             if (!res.ok) {
@@ -62,11 +92,14 @@ export const apiService = {
         }
     },
 
-    async deleteItem(id) {
+    async deleteItem(id, authHeader = {}) {
         try {
             const res = await fetch(`${API_URL}/items/${id}`, {
                 method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' }
+                headers: {
+                    ...API_CONFIG.headers,
+                    ...authHeader
+                }
             });
 
             if (!res.ok) {

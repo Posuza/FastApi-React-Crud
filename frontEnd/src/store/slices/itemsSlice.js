@@ -1,10 +1,10 @@
-import { apiService } from '../../services/api.services';
+import { apiService } from '../../services/item.services';
 
 export const createItemsSlice = (set, get) => ({
   items: [],
   itemsLoading: false,
   itemsError: null,
-  lastFetch: null, // Add this to track last fetch time
+  lastFetch: null, // Track last fetch time
 
   fetchItems: async () => {
     const now = Date.now();
@@ -17,7 +17,11 @@ export const createItemsSlice = (set, get) => ({
 
     set({ itemsLoading: true, itemsError: null });
     try {
-      const data = await apiService.fetchItems();
+      // Get auth header from auth slice
+      const getAuthHeader = get().getAuthHeader;
+      const authHeader = getAuthHeader ? getAuthHeader() : {};
+      
+      const data = await apiService.fetchItems(authHeader);
       set(state => ({ 
         items: data, 
         itemsLoading: false,
@@ -33,15 +37,37 @@ export const createItemsSlice = (set, get) => ({
     }
   },
 
+  getItemById: async (id) => {
+    try {
+      set({ itemsLoading: true, itemsError: null });
+      
+      // Get auth header from auth slice
+      const getAuthHeader = get().getAuthHeader;
+      const authHeader = getAuthHeader ? getAuthHeader() : {};
+      
+      const data = await apiService.getItemById(id, authHeader);
+      set({ itemsLoading: false });
+      return data;
+    } catch (error) {
+      set({ itemsError: error.message, itemsLoading: false });
+      throw error;
+    }
+  },
+
   createItem: async (newItem) => {
     try {
+      // Check if user is authenticated
       const user = get().user;
       if (!user) {
         throw new Error('Authentication required');
       }
 
+      // Get auth header from auth slice
+      const getAuthHeader = get().getAuthHeader;
+      const authHeader = getAuthHeader ? getAuthHeader() : {};
+
       set({ itemsLoading: true, itemsError: null });
-      const data = await apiService.createItem(newItem);
+      const data = await apiService.createItem(newItem, authHeader);
       set((state) => ({
         items: [...state.items, data],
         itemsLoading: false
@@ -55,13 +81,18 @@ export const createItemsSlice = (set, get) => ({
 
   updateItem: async (id, updatedData) => {
     try {
+      // Check if user is authenticated
       const user = get().user;
       if (!user) {
         throw new Error('Authentication required');
       }
 
+      // Get auth header from auth slice
+      const getAuthHeader = get().getAuthHeader;
+      const authHeader = getAuthHeader ? getAuthHeader() : {};
+
       set({ itemsLoading: true, itemsError: null });
-      const data = await apiService.updateItem(id, updatedData);
+      const data = await apiService.updateItem(id, updatedData, authHeader);
       set((state) => ({
         items: state.items.map((item) => 
           item.id === id ? { ...item, ...data } : item
@@ -77,13 +108,18 @@ export const createItemsSlice = (set, get) => ({
 
   deleteItem: async (id) => {
     try {
+      // Check if user is authenticated
       const user = get().user;
       if (!user) {
         throw new Error('Authentication required');
       }
 
+      // Get auth header from auth slice
+      const getAuthHeader = get().getAuthHeader;
+      const authHeader = getAuthHeader ? getAuthHeader() : {};
+
       set({ itemsLoading: true, itemsError: null });
-      await apiService.deleteItem(id);
+      await apiService.deleteItem(id, authHeader);
       set((state) => ({
         items: state.items.filter((item) => item.id !== id),
         itemsLoading: false
@@ -101,12 +137,7 @@ export const createItemsSlice = (set, get) => ({
   resetItems: () => set({ 
     items: [], 
     itemsLoading: false, 
-    itemsError: null 
-  }),
-
-  // Get single item
-  getItemById: (id) => {
-    const state = get();
-    return state.items.find(item => item.id === id);
-  }
+    itemsError: null,
+    lastFetch: null
+  })
 });

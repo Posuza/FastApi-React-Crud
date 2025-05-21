@@ -24,8 +24,9 @@ GutsApi/
 ├── frontEnd/        # React frontend (Vite)
 │   ├── src/
 │   ├── index.html
-│   ├── package.json
-│   └── ...
+│   ├── package.json1
+
+1  │   └── ...
 │
 ├── docker-compose.yml
 └── README.md

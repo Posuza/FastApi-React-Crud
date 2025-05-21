@@ -10,10 +10,12 @@ const Header = () => {
   const logout = useStore(state => state.logout);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [logoutError, setLogoutError] = useState(null);
 
   const handleLogoutClick = () => {
     setShowLogoutConfirm(true);
     setIsMenuOpen(false); // Close mobile menu if open
+    setLogoutError(null); // Clear any previous errors
   };
 
   const handleLogout = async () => {
@@ -22,9 +24,11 @@ const Header = () => {
       navigate('/auth');
     } catch (error) {
       console.error('Logout error:', error);
-    } finally {
-      setShowLogoutConfirm(false);
+      setLogoutError(error.message || 'Failed to logout. Please try again.');
+      // Don't close the confirmation dialog on error so user can try again
+      return;
     }
+    setShowLogoutConfirm(false);
   };
 
   return (
@@ -92,9 +96,23 @@ const Header = () => {
               <p className="text-gray-600 mb-6">
                 Are you sure you want to log out? You'll need to login again to access your account.
               </p>
+              
+              {/* Show error message if logout failed */}
+              {logoutError && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-md text-sm">
+                  <div className="flex items-center gap-2">
+                    <FiAlertCircle />
+                    <span>{logoutError}</span>
+                  </div>
+                </div>
+              )}
+              
               <div className="flex justify-end gap-3">
                 <button
-                  onClick={() => setShowLogoutConfirm(false)}
+                  onClick={() => {
+                    setShowLogoutConfirm(false);
+                    setLogoutError(null);
+                  }}
                   className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                 >
                   Cancel

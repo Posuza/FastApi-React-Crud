@@ -192,24 +192,16 @@ async def refresh_token(
     try:
         old_token, user = token_data
         
-        # First create new token
+        # Create new token value
         new_access_token = create_access_token(data={"sub": user.username})
         expires_at = datetime.utcnow() + timedelta(minutes=30)
         
-        # Create new token record in database
-        new_db_token = Token(
-            id=str(uuid.uuid4()),
-            token=new_access_token,
-            user_id=user.id,
-            expires_at=expires_at,
-            is_revoked=False
-        )
+        # Update the existing token record instead of creating a new one
+        old_token.token = new_access_token
+        old_token.expires_at = expires_at
+        old_token.is_revoked = False  # Ensure it's not revoked
         
-        # Add new token and revoke old token
-        db.add(new_db_token)
-        old_token.is_revoked = True
-        
-        # Commit both changes in one transaction
+        # Commit the changes
         db.commit()
         
         return {

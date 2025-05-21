@@ -1,13 +1,17 @@
-import { API_URL } from '../config/api.config';
+import { API_URL, API_CONFIG } from '../config/api.config';
 
 export const authService = {
   async login(username, password) {
     try {
       const response = await fetch(
-        `${API_URL}/users/login?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`,
+        `${API_URL}/users/login`,
         {
           method: 'POST',
-          headers: { 'accept': 'application/json' }
+          headers: API_CONFIG.headers,
+          body: JSON.stringify({
+            login: username,
+            password: password
+          })
         }
       );
 
@@ -24,9 +28,9 @@ export const authService = {
 
   async register(userData) {
     try {
-      const response = await fetch(`${API_URL}/users/`, {
+      const response = await fetch(`${API_URL}/users/register`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: API_CONFIG.headers,
         body: JSON.stringify(userData)
       });
 
@@ -41,15 +45,14 @@ export const authService = {
     }
   },
 
-  async logout(username) {
+  async logout(token) {
     try {
       const response = await fetch(`${API_URL}/users/logout`, {
         method: 'POST',
         headers: { 
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({ username: username })
+          ...API_CONFIG.headers,
+          'Authorization': `Bearer ${token}`
+        }
       });
 
       if (!response.ok) {
@@ -60,6 +63,28 @@ export const authService = {
       return response.json();
     } catch (error) {
       console.error('Logout error:', error);
+      throw error;
+    }
+  },
+
+  async refreshToken(token) {
+    try {
+      const response = await fetch(`${API_URL}/users/token/refresh`, {
+        method: 'POST',
+        headers: { 
+          ...API_CONFIG.headers,
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || 'Token refresh failed');
+      }
+
+      return response.json();
+    } catch (error) {
+      console.error('Token refresh error:', error);
       throw error;
     }
   }
