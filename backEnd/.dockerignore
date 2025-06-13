@@ -1,3 +1,66 @@
+# Environment files
+.env
+.env.local
+.env.production
+.env.development
+
+# Python cache
 __pycache__
 *.pyc
-.env
+*.pyo
+*.pyd
+.Python
+.pytest_cache
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+README.md
+docs/
+
+# Tests
+tests/
+test_*
+*_test.py
+
+# Development tools
+.coverage
+.pytest_cache/
+htmlcov/
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+
+# Database files (if any)
+*.db
+*.sqlite3
+
+# Docker files
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Development scripts
+scripts/dev*

@@ -1,59 +1,67 @@
 import os
 from typing import Any, Dict, Optional, List
 from dotenv import load_dotenv
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import BaseSettings
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from functools import lru_cache
 
-# Load environment variables
-load_dotenv()
+# Load environment variables from root directory
+load_dotenv(dotenv_path="../.env")
 
 class Settings(BaseSettings):
     # Project settings
-    PROJECT_NAME: str = os.getenv("PROJECT_NAME", "GutsAPI")
-    VERSION: str = os.getenv("VERSION", "1.0.0")
-    ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
+    PROJECT_NAME: str = "GutsAPI"
+    VERSION: str = "1.0.0"
+    ENVIRONMENT: str = "development"
+    API_V1_STR: str = "/api/v1"
     
     # Database settings
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "mysql+mysqlconnector://root:@localhost:3306/product")
-    
-    # OAuth2 settings
-    GOOGLE_CLIENT_ID: Optional[str] = os.getenv("GOOGLE_CLIENT_ID")
-    GOOGLE_CLIENT_SECRET: Optional[str] = os.getenv("GOOGLE_CLIENT_SECRET")
-    GITHUB_CLIENT_ID: Optional[str] = os.getenv("GITHUB_CLIENT_ID")
-    GITHUB_CLIENT_SECRET: Optional[str] = os.getenv("GITHUB_CLIENT_SECRET")
+    DATABASE_URL: str
+    MYSQL_ROOT_PASSWORD: Optional[str] = None
+    MYSQL_DATABASE: Optional[str] = None
+    MYSQL_USER: Optional[str] = None
+    MYSQL_PASSWORD: Optional[str] = None
     
     # Security settings
-    SECRET_KEY: str = os.getenv("SECRET_KEY")
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
+    SECRET_KEY: str
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    ALGORITHM: str = "HS256"
+    MIN_PASSWORD_LENGTH: int = 8
     
     # CORS settings
-    BACKEND_CORS_ORIGINS: List[str] = os.getenv("BACKEND_CORS_ORIGINS", "http://localhost:5173,http://localhost:3000,http://localhost:8080").split(",")
+    BACKEND_CORS_ORIGINS: List[str] = ["http://localhost:5173"]
     
-    # JWT Settings
-    ALGORITHM: str = os.getenv("ALGORITHM", "HS256")
+    # OAuth2 / Social Authentication Settings
+    # Google OAuth2
+    GOOGLE_CLIENT_ID: Optional[str] = None
+    GOOGLE_CLIENT_SECRET: Optional[str] = None
+    GOOGLE_REDIRECT_URI: str = "http://localhost:8000/api/v1/auth/google/callback"
+    
+    # GitHub OAuth2
+    GITHUB_CLIENT_ID: Optional[str] = None
+    GITHUB_CLIENT_SECRET: Optional[str] = None
+    GITHUB_REDIRECT_URI: str = "http://localhost:8000/api/v1/auth/github/callback"
+    
+    # Facebook OAuth2
+    FACEBOOK_CLIENT_ID: Optional[str] = None
+    FACEBOOK_CLIENT_SECRET: Optional[str] = None
+    FACEBOOK_REDIRECT_URI: str = "http://localhost:8000/api/v1/auth/facebook/callback"
+    
+    # Twitter OAuth2
+    TWITTER_CLIENT_ID: Optional[str] = None
+    TWITTER_CLIENT_SECRET: Optional[str] = None
+    TWITTER_REDIRECT_URI: str
+    
+    model_config = {
+        "env_file": "../.env",  # Look for .env in parent directory
+        "case_sensitive": True,
+        "extra": "ignore"  # This allows extra fields in .env file
+    }
 
-    # API Settings
-    API_V1_STR: str = os.getenv("API_V1_STR", "/api/v1")
-
-    # Database pool settings
-    DB_POOL_SIZE: int = int(os.getenv("DB_POOL_SIZE", "5"))
-    DB_MAX_OVERFLOW: int = int(os.getenv("DB_MAX_OVERFLOW", "10"))
-    DB_POOL_RECYCLE: int = int(os.getenv("DB_POOL_RECYCLE", "3600"))
-    DB_ECHO: bool = os.getenv("DB_ECHO", "False").lower() == "true"
-
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
-
-@lru_cache()
-def get_settings() -> Settings:
-    """Cache and return settings instance"""
-    return Settings()
-
-settings = get_settings()
+# Create settings instance
+settings = Settings()
 
 # Database configuration
 DATABASE_CONFIG: Dict[str, Any] = {

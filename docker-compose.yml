@@ -1,33 +1,83 @@
 version: '3.8'
 
 services:
+  # Database service
+  mysql:
+    image: mysql:8.0
+    container_name: guts_mysql_dev
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - mysql_dev_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    networks:
+      - guts-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  # Backend service (development)
   backend:
-    build: 
+    build:
       context: ./backEnd
-      dockerfile: Dockerfile.app
+      dockerfile: Dockerfile
+      target: development
+    container_name: guts_backend_dev
+    restart: unless-stopped
     ports:
       - "8000:8000"
+    env_file:
+      - .env
     environment:
-      - DATABASE_URL=mysql+mysqlconnector://root:@host.docker.internal:3306/product
+      - DATABASE_URL=mysql+mysqlconnector://${MYSQL_USER:-gutsuser}:${MYSQL_PASSWORD:-gutspassword}@mysql:3306/${MYSQL_DATABASE:-product}
+      - ENVIRONMENT=development
+      - SECRET_KEY=${SECRET_KEY}
+      - BACKEND_CORS_ORIGINS=["http://localhost:5173","http://localhost:3000"]
+    depends_on:
+      mysql:
+        condition: service_healthy
     networks:
-      - app-network
+      - guts-network
     volumes:
-      - backend_data:/app/data
+      - ./backEnd:/app
+      - backend_dev_data:/app/data
 
+  # Frontend service (development)
   frontend:
     build:
       context: ./frontEnd
       dockerfile: Dockerfile
+      target: development
+    container_name: guts_frontend_dev
+    restart: unless-stopped
     ports:
       - "5173:5173"
+    env_file:
+      - .env
+    environment:
+      - VITE_API_URL=http://localhost:8000
+      - VITE_API_BASE_URL=http://localhost:8000/api/v1
+      - VITE_ENVIRONMENT=development
     depends_on:
       - backend
     networks:
-      - app-network
+      - guts-network
+    volumes:
+      - ./frontEnd:/app
+      - /app/node_modules
 
 volumes:
-  backend_data:
+  mysql_dev_data:
+  backend_dev_data:
 
 networks:
-  app-network:
+  guts-network:
     driver: bridge

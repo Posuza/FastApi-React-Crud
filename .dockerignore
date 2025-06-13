@@ -1,0 +1,29 @@
+# This file is for root-level Docker builds (if any)
+
+# Environment files
+.env*
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+README.md
+docs/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Individual service files
+backEnd/venv/
+backEnd/__pycache__/
+frontEnd/node_modules/
+frontEnd/dist/

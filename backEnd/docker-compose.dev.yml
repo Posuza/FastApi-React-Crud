@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: guts_backend_standalone
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file:
+      - ../.env
+    environment:
+      - DATABASE_URL=mysql+mysqlconnector://gutsuser:gutspassword@mysql:3306/product
+      - ENVIRONMENT=development
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - backend-dev-network
+    volumes:
+      - .:/app
+
+  mysql:
+    image: mysql:8.0
+    container_name: guts_mysql_backend_dev
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: devpassword
+      MYSQL_DATABASE: product
+      MYSQL_USER: gutsuser
+      MYSQL_PASSWORD: gutspassword
+    volumes:
+      - mysql_backend_dev:/var/lib/mysql
+    ports:
+      - "3307:3306"
+    networks:
+      - backend-dev-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+volumes:
+  mysql_backend_dev:
+
+networks:
+  backend-dev-network:
+    driver: bridge
