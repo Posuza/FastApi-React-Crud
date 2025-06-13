@@ -1,3 +1,71 @@
-node_modules
-dist
+# Environment files
 .env
+.env.local
+.env.production
+.env.development
+
+# Dependencies (will be installed in container)
+node_modules/
+
+# Build outputs (will be generated in container)
+dist/
+build/
+
+# Development files
+src/**/*.test.js
+src/**/*.test.jsx
+src/**/*.test.ts
+src/**/*.test.tsx
+src/**/*.spec.js
+src/**/*.spec.jsx
+src/**/*.spec.ts
+src/**/*.spec.tsx
+
+# Testing
+coverage/
+.nyc_output/
+jest.config.js
+.eslintrc*
+.prettierrc*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+README.md
+docs/
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Temporary files
+*.tmp
+*.temp
+
+# Docker files
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Development tools
+.storybook/
+storybook-static/
+
+# Cache
+.cache/
+.parcel-cache/
